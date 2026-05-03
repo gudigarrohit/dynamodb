@@ -11,14 +11,14 @@ export default function Home() {
   const [editId, setEditId] = useState(null);
   const [showFinished, setShowFinished] = useState(true);
 
-  // Load todos from database
+  // Load todos from DB
   useEffect(() => {
     fetch("/api/todos")
       .then((res) => res.json())
       .then((data) => setTodos(data));
   }, []);
 
-  // Format date + time + seconds
+  // Format date/time
   const formatDate = (createdAt) => {
     const date = new Date(createdAt);
 
@@ -28,15 +28,13 @@ export default function Home() {
 
     let hours = date.getHours();
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
 
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
-    return `${day}-${month}-${year} | ${hours}:${minutes}:${seconds} ${ampm}`;
+    return `${day}-${month}-${year} & ${hours}:${minutes} ${ampm}`;
   };
 
-  // Show/Hide completed tasks
   const toggleFinished = () => {
     setShowFinished(!showFinished);
   };
@@ -60,11 +58,11 @@ export default function Home() {
     setTodos(todos.filter((item) => item._id !== id));
   };
 
-  // Add or update todo
+  // Add or Update todo
   const handleAdd = async () => {
     if (todo.trim() === "") return;
 
-    // Update existing todo
+    // Update mode
     if (editId) {
       const existingTodo = todos.find((t) => t._id === editId);
 
@@ -82,15 +80,13 @@ export default function Home() {
       });
 
       setTodos(
-        todos.map((t) =>
-          t._id === editId ? updatedTodo : t
-        )
+        todos.map((t) => (t._id === editId ? updatedTodo : t))
       );
 
       setEditId(null);
     }
 
-    // Create new todo
+    // Create mode
     else {
       const newTodo = {
         todo,
@@ -113,7 +109,6 @@ export default function Home() {
     setTodo("");
   };
 
-  // Input change
   const handleChange = (e) => {
     setTodo(e.target.value);
   };
@@ -121,9 +116,7 @@ export default function Home() {
   // Toggle checkbox
   const handleCheckbox = async (id) => {
     const newTodos = [...todos];
-    const index = newTodos.findIndex(
-      (item) => item._id === id
-    );
+    const index = newTodos.findIndex((item) => item._id === id);
 
     if (index === -1) return;
 
@@ -148,7 +141,7 @@ export default function Home() {
       <Navbar />
 
       <div className="container bg-gradient-to-r from-violet-500 via-purple-900 shadow-2xl m-auto mt-7 rounded-2xl p-8 min-h-[82vh] w-11/12 md:w-2/3 lg:w-1/2">
-
+        
         {/* Add Todo */}
         <div className="addtodo mb-8">
           <h2 className="text-2xl font-extrabold mb-4 text-purple-200">
@@ -185,7 +178,7 @@ export default function Home() {
           <label>Show Finished</label>
         </div>
 
-        {/* Todo List */}
+        {/* Todos List */}
         <h2 className="text-3xl font-extrabold mb-6 text-purple-200">
           Your Todos
         </h2>
@@ -215,7 +208,6 @@ export default function Home() {
                     />
 
                     <div className="flex flex-col">
-                      {/* Todo text */}
                       <div
                         className={`font-semibold ${
                           item.isCompleted
@@ -226,7 +218,7 @@ export default function Home() {
                         {item.todo}
                       </div>
 
-                      {/* Date + Time + Seconds */}
+                      {/* Date + Time */}
                       <div className="text-xs text-gray-500">
                         {item.createdAt &&
                           formatDate(item.createdAt)}
