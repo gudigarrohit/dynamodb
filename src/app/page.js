@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete } from "react-icons/md";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   const [todo, setTodo] = useState("");
@@ -48,63 +50,90 @@ export default function Home() {
 
   // Delete
   const handleDelete = async (id) => {
-    await fetch("/api/todos", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id }),
-    });
+    try {
+      await fetch("/api/todos", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
 
-    setTodos(todos.filter((item) => item.id !== id));
+      setTodos(todos.filter((item) => item.id !== id));
+
+      toast.success("Todo deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete todo");
+    }
   };
 
   // Add / Update
   const handleAdd = async () => {
     if (todo.trim() === "") return;
 
-    // Update
+    // UPDATE
     if (editId) {
-      const existingTodo = todos.find((t) => t.id === editId);
+      try {
+        const existingTodo = todos.find(
+          (t) => t.id === editId
+        );
 
-      const updatedTodo = {
-        ...existingTodo,
-        todo,
-      };
+        const res = await fetch("/api/todos", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: editId,
+            todo,
+            isCompleted: existingTodo.isCompleted,
+          }),
+        });
 
-      await fetch("/api/todos", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedTodo),
-      });
+        const data = await res.json();
 
-      setTodos(
-        todos.map((t) =>
-          t.id === editId ? updatedTodo : t
-        )
-      );
+        const updatedTodo = {
+          ...existingTodo,
+          todo,
+          createdAt: data.updatedAt,
+        };
 
-      setEditId(null);
+        setTodos(
+          todos.map((t) =>
+            t.id === editId ? updatedTodo : t
+          )
+        );
+
+        toast.success("Todo updated successfully");
+
+        setEditId(null);
+      } catch (error) {
+        toast.error("Failed to update todo");
+      }
     }
 
-    // Create
+    // CREATE
     else {
-      const res = await fetch("/api/todos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          todo,
-          isCompleted: false,
-        }),
-      });
+      try {
+        const res = await fetch("/api/todos", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            todo,
+            isCompleted: false,
+          }),
+        });
 
-      const savedTodo = await res.json();
+        const savedTodo = await res.json();
 
-      setTodos([...todos, savedTodo]);
+        setTodos([...todos, savedTodo]);
+
+        toast.success("Todo created successfully");
+      } catch (error) {
+        toast.error("Failed to create todo");
+      }
     }
 
     setTodo("");
@@ -116,31 +145,42 @@ export default function Home() {
 
   // Checkbox toggle
   const handleCheckbox = async (id) => {
-    const updatedTodos = [...todos];
-    const index = updatedTodos.findIndex(
-      (item) => item.id === id
-    );
+    try {
+      const updatedTodos = [...todos];
+      const index = updatedTodos.findIndex(
+        (item) => item.id === id
+      );
 
-    if (index === -1) return;
+      if (index === -1) return;
 
-    updatedTodos[index].isCompleted =
-      !updatedTodos[index].isCompleted;
+      updatedTodos[index].isCompleted =
+        !updatedTodos[index].isCompleted;
 
-    const updatedTodo = updatedTodos[index];
+      const updatedTodo = updatedTodos[index];
 
-    await fetch("/api/todos", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedTodo),
-    });
+      const res = await fetch("/api/todos", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedTodo),
+      });
 
-    setTodos(updatedTodos);
+      const data = await res.json();
+
+      updatedTodos[index].createdAt = data.updatedAt;
+
+      setTodos(updatedTodos);
+
+      toast.success("Todo status updated");
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
   };
 
   return (
     <>
+      <ToastContainer position="top-right" autoClose={2000} />
       <Navbar />
 
       <div className="container mb-6 bg-gradient-to-r from-violet-500 via-purple-900 shadow-2xl m-auto mt-7 rounded-2xl p-8 min-h-[82vh] w-11/12 md:w-2/3 lg:w-1/2">
@@ -210,11 +250,10 @@ export default function Home() {
 
                     <div className="flex flex-col">
                       <div
-                        className={`font-semibold ${
-                          item.isCompleted
-                            ? "line-through text-gray-400"
-                            : "text-gray-700"
-                        }`}
+                        className={`font-semibold ${item.isCompleted
+                          ? "line-through text-gray-400"
+                          : "text-gray-700"
+                          }`}
                       >
                         {item.todo}
                       </div>
