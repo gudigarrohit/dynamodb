@@ -24,10 +24,10 @@ export default function Home() {
   };
 
   // ✅ EDIT (same behavior as before)
-const handleEdit = (item) => {
-  setTodo(item.todo);
-  setEditId(item.id);
-};
+  const handleEdit = (item) => {
+    setTodo(item.todo);
+    setEditId(item.id);
+  };
 
   // ✅ DELETE FROM DB
   const handleDelete = async (id) => {
@@ -40,43 +40,43 @@ const handleEdit = (item) => {
   };
 
   // ✅ ADD TO DB
-const handleAdd = async () => {
-  if (todo.trim() === "") return;
+  const handleAdd = async () => {
+    if (todo.trim() === "") return;
 
-  // 🔴 UPDATE MODE
-  if (editId) {
-    const updated = {
-      id: editId,
-      todo,
-      isCompleted: todos.find(t => t.id === editId)?.isCompleted || false,
-    };
+    // 🔴 UPDATE MODE
+    if (editId) {
+      const updated = {
+        id: editId,
+        todo,
+        isCompleted: todos.find(t => t.id === editId)?.isCompleted || false,
+      };
 
-    await fetch("/api/todos", {
-      method: "PATCH",
-      body: JSON.stringify(updated),
-    });
+      await fetch("/api/todos", {
+        method: "PATCH",
+        body: JSON.stringify(updated),
+      });
 
-    setTodos(todos.map(t => t.id === editId ? updated : t));
-    setEditId(null);
-  } 
-  // 🟢 CREATE MODE
-  else {
-    const newTodo = {
-      id: uuidv4(),
-      todo,
-      isCompleted: false,
-    };
+      setTodos(todos.map(t => t.id === editId ? updated : t));
+      setEditId(null);
+    }
+    // 🟢 CREATE MODE
+    else {
+      const newTodo = {
+        id: uuidv4(),
+        todo,
+        isCompleted: false,
+      };
 
-    await fetch("/api/todos", {
-      method: "POST",
-      body: JSON.stringify(newTodo),
-    });
+      await fetch("/api/todos", {
+        method: "POST",
+        body: JSON.stringify(newTodo),
+      });
 
-    setTodos([...todos, newTodo]);
-  }
+      setTodos([...todos, newTodo]);
+    }
 
-  setTodo("");
-};
+    setTodo("");
+  };
   const handleChange = (e) => {
     setTodo(e.target.value);
   };
@@ -147,55 +147,75 @@ const handleAdd = async () => {
         <h2 className="text-3xl font-extrabold mb-6 text-purple-200">
           Your Todos
         </h2>
-
         <div className="space-y-4">
           {todos.length === 0 && (
             <div className="text-center">No todos to display</div>
           )}
 
-          {todos.map((item) => (
-            (showFinished || !item.isCompleted) && (
-              <div
-                key={item.id}
-                className="flex items-center justify-between bg-white rounded-xl px-5 py-2"
-              >
-                <div className="flex gap-3 items-center w-[60%]">
-                  <input
-                    name={item.id}
-                    onChange={handleCheckbox}
-                    type="checkbox"
-                    checked={item.isCompleted}
-                  />
+          {todos.map(
+            (item) =>
+              (showFinished || !item.isCompleted) && (
+                <div
+                  key={item._id}
+                  className="flex items-center justify-between bg-white rounded-xl px-5 py-3"
+                >
+                  <div className="flex gap-3 items-center w-[65%]">
+                    <input
+                      onChange={() => handleCheckbox(item)}
+                      type="checkbox"
+                      checked={item.isCompleted}
+                    />
 
-                  <div
-                    className={`font-semibold ${
-                      item.isCompleted
-                        ? "line-through text-gray-400"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {item.todo}
+                    {/* TEXT + TIME */}
+                    <div className="flex flex-col">
+                      <div
+                        className={`font-semibold ${item.isCompleted
+                          ? "line-through text-gray-400"
+                          : "text-gray-700"
+                          }`}
+                      >
+                        {item.todo}
+                      </div>
+
+                      <div className="text-xs text-gray-500">
+                        {item.createdAt && (() => {
+                          const date = new Date(item.createdAt);
+
+                          const day = String(date.getDate()).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const year = date.getFullYear();
+
+                          let hours = date.getHours();
+                          const minutes = String(date.getMinutes()).padStart(2, "0");
+
+                          const ampm = hours >= 12 ? "PM" : "AM";
+                          hours = hours % 12 || 12;
+
+                          return `${day}-${month}-${year} & ${hours}:${minutes} ${ampm}`;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ACTIONS */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="bg-blue-500 px-2 py-1 rounded text-white"
+                    >
+                      <CiEdit />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      className="bg-red-500 px-2 py-1 rounded text-white"
+                    >
+                      <MdDelete />
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-blue-500 px-2 py-1 rounded text-white"
-                  >
-                    <CiEdit />
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="bg-red-500 px-2 py-1 rounded text-white"
-                  >
-                    <MdDelete />
-                  </button>
-                </div>
-              </div>
-            )
-          ))}
+              )
+          )}
         </div>
       </div>
     </>
