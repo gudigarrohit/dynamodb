@@ -143,7 +143,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      <div className="container bg-gradient-to-r from-violet-500 via-purple-900 shadow-2xl m-auto mt-7 rounded-2xl p-8 min-h-[82vh] w-11/12 md:w-2/3 lg:w-1/2">
+      <div className="container mb-6 bg-gradient-to-r from-violet-500 via-purple-900 shadow-2xl m-auto mt-7 rounded-2xl p-8 min-h-[82vh] w-11/12 md:w-2/3 lg:w-1/2">
 
         {/* Add Todo */}
         <div className="mb-8">
