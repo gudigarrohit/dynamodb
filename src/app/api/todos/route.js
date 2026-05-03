@@ -6,11 +6,16 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
+import { v4 as uuidv4 } from "uuid";
+
 // GET
 export async function GET() {
   const data = await db.send(
-    new ScanCommand({ TableName: "todos" })
+    new ScanCommand({
+      TableName: "todos",
+    })
   );
+
   return Response.json(data.Items || []);
 }
 
@@ -18,14 +23,21 @@ export async function GET() {
 export async function POST(req) {
   const body = await req.json();
 
+  const newTodo = {
+    id: uuidv4(),
+    todo: body.todo,
+    isCompleted: false,
+    createdAt: new Date().toISOString(),
+  };
+
   await db.send(
     new PutCommand({
       TableName: "todos",
-      Item: body,
+      Item: newTodo,
     })
   );
 
-  return Response.json({ success: true });
+  return Response.json(newTodo);
 }
 
 // DELETE
@@ -39,7 +51,9 @@ export async function DELETE(req) {
     })
   );
 
-  return Response.json({ success: true });
+  return Response.json({
+    success: true,
+  });
 }
 
 // UPDATE
@@ -50,14 +64,19 @@ export async function PATCH(req) {
     new UpdateCommand({
       TableName: "todos",
       Key: { id },
-      UpdateExpression: "SET #t = :t, isCompleted = :c",
-      ExpressionAttributeNames: { "#t": "todo" },
+      UpdateExpression:
+        "SET #todo = :todo, isCompleted = :completed",
+      ExpressionAttributeNames: {
+        "#todo": "todo",
+      },
       ExpressionAttributeValues: {
-        ":t": todo,
-        ":c": isCompleted,
+        ":todo": todo,
+        ":completed": isCompleted,
       },
     })
   );
 
-  return Response.json({ success: true });
+  return Response.json({
+    success: true,
+  });
 }

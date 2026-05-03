@@ -11,14 +11,14 @@ export default function Home() {
   const [editId, setEditId] = useState(null);
   const [showFinished, setShowFinished] = useState(true);
 
-  // Load todos from DB
+  // Load todos
   useEffect(() => {
     fetch("/api/todos")
       .then((res) => res.json())
       .then((data) => setTodos(data));
   }, []);
 
-  // Format date/time
+  // Date + Time + Seconds format
   const formatDate = (createdAt) => {
     const date = new Date(createdAt);
 
@@ -28,24 +28,25 @@ export default function Home() {
 
     let hours = date.getHours();
     const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
 
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
-    return `${day}-${month}-${year} & ${hours}:${minutes} ${ampm}`;
+    return `${day}-${month}-${year} | ${hours}:${minutes}:${seconds} ${ampm}`;
   };
 
   const toggleFinished = () => {
     setShowFinished(!showFinished);
   };
 
-  // Edit todo
+  // Edit
   const handleEdit = (item) => {
     setTodo(item.todo);
-    setEditId(item._id);
+    setEditId(item.id);
   };
 
-  // Delete todo
+  // Delete
   const handleDelete = async (id) => {
     await fetch("/api/todos", {
       method: "DELETE",
@@ -55,16 +56,16 @@ export default function Home() {
       body: JSON.stringify({ id }),
     });
 
-    setTodos(todos.filter((item) => item._id !== id));
+    setTodos(todos.filter((item) => item.id !== id));
   };
 
-  // Add or Update todo
+  // Add / Update
   const handleAdd = async () => {
     if (todo.trim() === "") return;
 
-    // Update mode
+    // Update
     if (editId) {
-      const existingTodo = todos.find((t) => t._id === editId);
+      const existingTodo = todos.find((t) => t.id === editId);
 
       const updatedTodo = {
         ...existingTodo,
@@ -80,25 +81,25 @@ export default function Home() {
       });
 
       setTodos(
-        todos.map((t) => (t._id === editId ? updatedTodo : t))
+        todos.map((t) =>
+          t.id === editId ? updatedTodo : t
+        )
       );
 
       setEditId(null);
     }
 
-    // Create mode
+    // Create
     else {
-      const newTodo = {
-        todo,
-        isCompleted: false,
-      };
-
       const res = await fetch("/api/todos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newTodo),
+        body: JSON.stringify({
+          todo,
+          isCompleted: false,
+        }),
       });
 
       const savedTodo = await res.json();
@@ -113,17 +114,19 @@ export default function Home() {
     setTodo(e.target.value);
   };
 
-  // Toggle checkbox
+  // Checkbox toggle
   const handleCheckbox = async (id) => {
-    const newTodos = [...todos];
-    const index = newTodos.findIndex((item) => item._id === id);
+    const updatedTodos = [...todos];
+    const index = updatedTodos.findIndex(
+      (item) => item.id === id
+    );
 
     if (index === -1) return;
 
-    newTodos[index].isCompleted =
-      !newTodos[index].isCompleted;
+    updatedTodos[index].isCompleted =
+      !updatedTodos[index].isCompleted;
 
-    const updatedTodo = newTodos[index];
+    const updatedTodo = updatedTodos[index];
 
     await fetch("/api/todos", {
       method: "PATCH",
@@ -133,7 +136,7 @@ export default function Home() {
       body: JSON.stringify(updatedTodo),
     });
 
-    setTodos(newTodos);
+    setTodos(updatedTodos);
   };
 
   return (
@@ -141,52 +144,51 @@ export default function Home() {
       <Navbar />
 
       <div className="container bg-gradient-to-r from-violet-500 via-purple-900 shadow-2xl m-auto mt-7 rounded-2xl p-8 min-h-[82vh] w-11/12 md:w-2/3 lg:w-1/2">
-        
+
         {/* Add Todo */}
-        <div className="addtodo mb-8">
-          <h2 className="text-2xl font-extrabold mb-4 text-purple-200">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4 text-purple-200">
             Add a Todo
           </h2>
 
           <div className="flex">
             <input
-              onChange={handleChange}
-              value={todo}
               type="text"
-              placeholder="Enter your todos"
-              className="bg-white text-black w-full rounded-lg px-4 py-2 mr-3 outline-none"
+              value={todo}
+              onChange={handleChange}
+              placeholder="Enter your todo"
+              className="bg-white text-black w-full rounded-lg px-4 py-2 mr-3"
             />
 
             <button
               onClick={handleAdd}
               disabled={todo.length <= 1}
-              className="bg-violet-700 hover:bg-violet-900 disabled:bg-violet-400 px-5 py-2 rounded-lg text-white"
+              className="bg-violet-700 hover:bg-violet-900 px-5 py-2 rounded-lg text-white"
             >
               {editId ? "Update" : "Save"}
             </button>
           </div>
         </div>
 
-        {/* Show Finished */}
+        {/* Show finished */}
         <div className="flex items-center gap-2 mb-6">
           <input
-            onChange={toggleFinished}
             type="checkbox"
             checked={showFinished}
-            className="cursor-pointer"
+            onChange={toggleFinished}
           />
           <label>Show Finished</label>
         </div>
 
-        {/* Todos List */}
-        <h2 className="text-3xl font-extrabold mb-6 text-purple-200">
+        {/* Todo list */}
+        <h2 className="text-3xl font-bold mb-6 text-purple-200">
           Your Todos
         </h2>
 
         <div className="space-y-4">
           {todos.length === 0 && (
             <div className="text-center text-white">
-              No todos to display
+              No todos available
             </div>
           )}
 
@@ -194,16 +196,15 @@ export default function Home() {
             (item) =>
               (showFinished || !item.isCompleted) && (
                 <div
-                  key={item._id}
-                  className="flex items-center justify-between bg-white rounded-xl px-5 py-3"
+                  key={item.id}
+                  className="flex justify-between items-center bg-white rounded-xl px-5 py-3"
                 >
-                  {/* Left section */}
                   <div className="flex gap-3 items-center w-[65%]">
                     <input
                       type="checkbox"
                       checked={item.isCompleted}
                       onChange={() =>
-                        handleCheckbox(item._id)
+                        handleCheckbox(item.id)
                       }
                     />
 
@@ -218,7 +219,7 @@ export default function Home() {
                         {item.todo}
                       </div>
 
-                      {/* Date + Time */}
+                      {/* Time Section */}
                       <div className="text-xs text-gray-500">
                         {item.createdAt &&
                           formatDate(item.createdAt)}
@@ -226,7 +227,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Action buttons */}
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(item)}
@@ -237,7 +237,7 @@ export default function Home() {
 
                     <button
                       onClick={() =>
-                        handleDelete(item._id)
+                        handleDelete(item.id)
                       }
                       className="bg-red-500 px-2 py-1 rounded text-white"
                     >
