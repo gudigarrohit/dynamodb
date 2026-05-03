@@ -60,23 +60,29 @@ export async function DELETE(req) {
 export async function PATCH(req) {
   const { id, todo, isCompleted } = await req.json();
 
+  const updatedAt = new Date().toISOString();
+
   await db.send(
     new UpdateCommand({
       TableName: "todos",
       Key: { id },
       UpdateExpression:
-        "SET #todo = :todo, isCompleted = :completed",
+        "SET #todo = :todo, isCompleted = :completed, createdAt = :time",
+      
       ExpressionAttributeNames: {
         "#todo": "todo",
       },
+
       ExpressionAttributeValues: {
         ":todo": todo,
         ":completed": isCompleted,
+        ":time": updatedAt,
       },
     })
   );
 
   return Response.json({
     success: true,
+    updatedAt,
   });
 }
