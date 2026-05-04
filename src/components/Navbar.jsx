@@ -6,7 +6,7 @@ const Navbar = () => {
   return (
     <nav className="flex sticky top-0 justify-between items-center bg-gradient-to-r from-indigo-600 via-purple-600 to-black text-white py-4 md:px-8 px-3 shadow-lg">
 
-      {/* Logo */}
+      
       <div className="logo font-extrabold text-2xl tracking-wide">
         <span className="cursor-pointer transition-colors hover:text-violet-200">
           iTask Manager
