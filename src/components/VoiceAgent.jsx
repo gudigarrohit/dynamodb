@@ -6,24 +6,39 @@ import { Bot, X } from "lucide-react";
 
 const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
 
-export default function VoiceAgent() {
+export default function VoiceAgent({ fetchTodos }) {
   const [isCalling, setIsCalling] = useState(false);
 
   const startCall = async () => {
     try {
       setIsCalling(true);
+
+      vapi.on("message", async (message) => {
+        console.log("Vapi message:", message);
+
+        if (
+          message.type === "tool-calls" ||
+          message.type === "function-call"
+        ) {
+          await fetchTodos();
+        }
+      });
+
       await vapi.start(
         process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID
       );
+
     } catch (error) {
       console.log(error);
       setIsCalling(false);
     }
   };
 
-  const stopCall = () => {
+  const stopCall = async () => {
     vapi.stop();
     setIsCalling(false);
+
+    await fetchTodos();
   };
 
   return (

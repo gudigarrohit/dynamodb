@@ -15,11 +15,19 @@ export default function Home() {
   const [showFinished, setShowFinished] = useState(false);
 
   // Load todos
-  useEffect(() => {
-    fetch("/api/todos")
-      .then((res) => res.json())
-      .then((data) => setTodos(data));
-  }, []);
+const fetchTodos = async () => {
+  try {
+    const res = await fetch("/api/todos");
+    const data = await res.json();
+    setTodos(data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  fetchTodos();
+}, []);
 
   // Date + Time + Seconds format
   const formatDate = (createdAt) => {
@@ -290,7 +298,6 @@ export default function Home() {
           )}
         </div>
       </div>
-      <VoiceAgent />
-    </>
+<VoiceAgent fetchTodos={fetchTodos} />    </>
   );
 }
