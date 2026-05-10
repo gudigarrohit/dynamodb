@@ -1,3 +1,9 @@
+import { db } from "@/lib/dynamodb";
+import {
+  PutCommand
+} from "@aws-sdk/lib-dynamodb";
+
+
 // CREATE
 export async function POST(req) {
   try {
