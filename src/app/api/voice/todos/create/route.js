@@ -44,12 +44,12 @@ export async function POST(req) {
         Item: newTodo,
       })
     );
-
+    console.log("Created Todo:", newTodo);
     return Response.json({
       results: [
         {
           toolCallId,
-          result: `Task "${todoText}" created successfully`
+          result: `Successfully added task: ${todoText}`
         }
       ]
     });
