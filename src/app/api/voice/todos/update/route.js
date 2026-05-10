@@ -40,7 +40,12 @@ export async function PATCH(req) {
     })
   );
 
-  return Response.json({
-    success: true
-  });
+return Response.json({
+  results: [
+    {
+      toolCallId,
+      result: `Task updated successfully`
+    }
+  ]
+});
 }

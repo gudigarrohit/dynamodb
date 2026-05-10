@@ -21,39 +21,67 @@ export async function GET() {
 
 // CREATE
 export async function POST(req) {
-  const body = await req.json();
+  try {
+    const body = await req.json();
 
-  if (!body.todo || body.todo.trim() === "") {
-    return Response.json(
-      {
-        success: false,
-        message: "Todo text is required"
-      },
-      { status: 400 }
+    console.log("Incoming body:", body);
+
+    const toolCallId =
+      body.message?.toolCalls?.[0]?.id ||
+      body.toolCallId ||
+      "default-call-id";
+
+    const todoText =
+      body.todo ||
+      body.parameters?.todo;
+
+    if (!todoText || todoText.trim() === "") {
+      return Response.json({
+        results: [
+          {
+            toolCallId,
+            result: "Todo cannot be empty"
+          }
+        ]
+      });
+    }
+
+    const newTodo = {
+      id: uuidv4(),
+      todo: todoText,
+      isCompleted: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.send(
+      new PutCommand({
+        TableName: "todos",
+        Item: newTodo,
+      })
     );
+
+    return Response.json({
+      results: [
+        {
+          toolCallId,
+          result: `Task "${todoText}" created successfully`
+        }
+      ]
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    return Response.json({
+      results: [
+        {
+          toolCallId: "error",
+          result: "Failed to create todo"
+        }
+      ]
+    });
   }
-
-  const newTodo = {
-    id: uuidv4(),
-    todo: body.todo,
-    isCompleted: false,
-    createdAt: new Date().toISOString(),
-  };
-
-  await db.send(
-    new PutCommand({
-      TableName: "todos",
-      Item: newTodo,
-    })
-  );
-
-  return Response.json({
-    success: true,
-    message: "Todo created successfully",
-    data: newTodo
-  });
 }
-
 // DELETE
 export async function DELETE(req) {
   const { id } = await req.json();

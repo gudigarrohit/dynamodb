@@ -32,7 +32,12 @@ export async function DELETE(req) {
     })
   );
 
-  return Response.json({
-    success: true
-  });
+return Response.json({
+  results: [
+    {
+      toolCallId,
+      result: "Task deleted successfully"
+    }
+  ]
+});
 }
