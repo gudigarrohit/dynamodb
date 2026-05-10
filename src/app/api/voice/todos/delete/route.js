@@ -8,14 +8,37 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
+    console.log("Incoming Delete Body:", body);
+
+    const toolCall =
+      body.message?.toolCalls?.[0];
+
     const toolCallId =
-      body.message?.toolCalls?.[0]?.id ||
+      toolCall?.id ||
+      body.toolCallId ||
       "default-call-id";
 
+    // Extract todo from Postman + Vapi payloads
     const todo =
       body.todo ||
-      body.parameters?.todo;
+      body.parameters?.todo ||
+      toolCall?.function?.arguments?.todo ||
+      toolCall?.arguments?.todo;
 
+    console.log("Extracted Todo:", todo);
+
+    if (!todo) {
+      return Response.json({
+        results: [
+          {
+            toolCallId,
+            result: "Todo name is required"
+          }
+        ]
+      });
+    }
+
+    // Fetch all todos
     const data = await db.send(
       new ScanCommand({
         TableName: "todos"
@@ -23,7 +46,7 @@ export async function POST(req) {
     );
 
     const task = data.Items.find(
-      item =>
+      (item) =>
         item.todo.toLowerCase() ===
         todo.toLowerCase()
     );
@@ -39,6 +62,7 @@ export async function POST(req) {
       });
     }
 
+    // Delete todo
     await db.send(
       new DeleteCommand({
         TableName: "todos",
@@ -58,7 +82,7 @@ export async function POST(req) {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Delete Error:", error);
 
     return Response.json({
       results: [

@@ -1,8 +1,21 @@
 import { db } from "@/lib/dynamodb";
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 
-export async function GET(req) {
+export async function POST(req) {
   try {
+    const body = await req.json();
+
+    console.log("Incoming GetTodos Body:", body);
+
+    const toolCall =
+      body.message?.toolCalls?.[0];
+
+    const toolCallId =
+      toolCall?.id ||
+      body.toolCallId ||
+      "default-call-id";
+
+    // Fetch all todos
     const data = await db.send(
       new ScanCommand({
         TableName: "todos"
@@ -43,14 +56,14 @@ export async function GET(req) {
     return Response.json({
       results: [
         {
-          toolCallId: "get-todos",
+          toolCallId,
           result: responseMessage
         }
       ]
     });
 
   } catch (error) {
-    console.log(error);
+    console.error("GetTodos Error:", error);
 
     return Response.json({
       results: [

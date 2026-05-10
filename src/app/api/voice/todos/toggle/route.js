@@ -8,16 +8,24 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    console.log("Toggle request body:", body);
+    console.log("Incoming Toggle Body:", body);
+
+    const toolCall =
+      body.message?.toolCalls?.[0];
 
     const toolCallId =
-      body.message?.toolCalls?.[0]?.id ||
+      toolCall?.id ||
       body.toolCallId ||
       "default-call-id";
 
+    // Extract todo from both Postman + Vapi payloads
     const todo =
       body.todo ||
-      body.parameters?.todo;
+      body.parameters?.todo ||
+      toolCall?.function?.arguments?.todo ||
+      toolCall?.arguments?.todo;
+
+    console.log("Extracted Todo:", todo);
 
     if (!todo) {
       return Response.json({

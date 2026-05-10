@@ -16,10 +16,18 @@ export async function POST(req) {
       body.toolCallId ||
       "default-call-id";
 
-    const todoText =
-      body.todo ||
-      body.parameters?.todo;
+  const toolCall =
+  body.message?.toolCalls?.[0];
 
+console.log("Tool Call Data:", toolCall);
+
+const todoText =
+  body.todo ||
+  body.parameters?.todo ||
+  toolCall?.function?.arguments?.todo ||
+  toolCall?.arguments?.todo;
+
+console.log("Extracted Todo:", todoText);
     if (!todoText || todoText.trim() === "") {
       return Response.json({
         results: [
