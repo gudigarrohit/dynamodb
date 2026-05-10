@@ -4,48 +4,81 @@ import {
   UpdateCommand
 } from "@aws-sdk/lib-dynamodb";
 
-export async function PATCH(req) {
-  const { oldTodo, newTodo } = await req.json();
+export async function POST(req) {
+  try {
+    const body = await req.json();
 
-  const data = await db.send(
-    new ScanCommand({
-      TableName: "todos"
-    })
-  );
+    const toolCallId =
+      body.message?.toolCalls?.[0]?.id ||
+      "default-call-id";
 
-  const task = data.Items.find(
-    item =>
-      item.todo.toLowerCase() === oldTodo.toLowerCase()
-  );
+    const oldTodo =
+      body.oldTodo ||
+      body.parameters?.oldTodo;
 
-  if (!task) {
-    return Response.json(
-      { error: "Todo not found"
-      },
-      { status: 404 }
+    const newTodo =
+      body.newTodo ||
+      body.parameters?.newTodo;
+
+    const data = await db.send(
+      new ScanCommand({
+        TableName: "todos"
+      })
     );
-  }
 
-  await db.send(
-    new UpdateCommand({
-      TableName: "todos",
-      Key: { id: task.id },
-      UpdateExpression: "SET #todo = :newTodo",
-      ExpressionAttributeNames: {
-        "#todo": "todo"
-      },
-      ExpressionAttributeValues: {
-        ":newTodo": newTodo
-      }
-    })
-  );
+    const task = data.Items.find(
+      item =>
+        item.todo.toLowerCase() ===
+        oldTodo.toLowerCase()
+    );
 
-return Response.json({
-  results: [
-    {
-      toolCallId,
-      result: `Task updated successfully`
+    if (!task) {
+      return Response.json({
+        results: [
+          {
+            toolCallId,
+            result: "Task not found"
+          }
+        ]
+      });
     }
-  ]
-});
+
+    await db.send(
+      new UpdateCommand({
+        TableName: "todos",
+        Key: {
+          id: task.id
+        },
+        UpdateExpression:
+          "SET #todo = :newTodo",
+        ExpressionAttributeNames: {
+          "#todo": "todo"
+        },
+        ExpressionAttributeValues: {
+          ":newTodo": newTodo
+        }
+      })
+    );
+
+    return Response.json({
+      results: [
+        {
+          toolCallId,
+          result: "Task updated successfully"
+        }
+      ]
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return Response.json({
+      results: [
+        {
+          toolCallId: "error",
+          result: "Failed to update task"
+        }
+      ]
+    });
+  }
 }
