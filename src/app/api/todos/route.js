@@ -23,6 +23,16 @@ export async function GET() {
 export async function POST(req) {
   const body = await req.json();
 
+  if (!body.todo || body.todo.trim() === "") {
+    return Response.json(
+      {
+        success: false,
+        message: "Todo text is required"
+      },
+      { status: 400 }
+    );
+  }
+
   const newTodo = {
     id: uuidv4(),
     todo: body.todo,
@@ -37,7 +47,11 @@ export async function POST(req) {
     })
   );
 
-  return Response.json(newTodo);
+  return Response.json({
+    success: true,
+    message: "Todo created successfully",
+    data: newTodo
+  });
 }
 
 // DELETE

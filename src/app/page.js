@@ -5,13 +5,14 @@ import Navbar from "@/components/Navbar";
 import { CiEdit } from "react-icons/ci";
 import { MdDelete } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
+import VoiceAgent from "@/components/VoiceAgent";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   const [todo, setTodo] = useState("");
   const [todos, setTodos] = useState([]);
   const [editId, setEditId] = useState(null);
-  const [showFinished, setShowFinished] = useState(true);
+  const [showFinished, setShowFinished] = useState(false);
 
   // Load todos
   useEffect(() => {
@@ -180,6 +181,7 @@ export default function Home() {
 
   return (
     <>
+
       <ToastContainer position="top-right" autoClose={2000} />
       <Navbar />
 
@@ -288,6 +290,7 @@ export default function Home() {
           )}
         </div>
       </div>
+      <VoiceAgent />
     </>
   );
 }
