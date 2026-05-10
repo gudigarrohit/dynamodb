@@ -2,7 +2,7 @@ import { db } from "@/lib/dynamodb";
 import {
   PutCommand
 } from "@aws-sdk/lib-dynamodb";
-
+import { v4 as uuidv4 } from "uuid";
 
 // CREATE
 export async function POST(req) {
