@@ -55,8 +55,7 @@ export async function POST(req) {
     });
 
   } catch (error) {
-    console.log(error);
-
+    console.error("Create Todo Error:", error);
     return Response.json({
       results: [
         {
