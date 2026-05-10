@@ -19,11 +19,25 @@ export async function POST(req) {
       "default-call-id";
 
     // Extract todo from Postman + Vapi payloads
-    const todo =
-      body.todo ||
-      body.parameters?.todo ||
-      toolCall?.function?.arguments?.todo ||
-      toolCall?.arguments?.todo;
+const todo =
+  body.todo ||
+  body.parameters?.todo ||
+  toolCall?.function?.arguments?.todo ||
+  toolCall?.arguments?.todo ||
+  body.message?.toolCallList?.[0]?.arguments?.todo ||
+  body.message?.toolWithToolCallList?.[0]?.toolCall?.arguments?.todo ||
+  body.message?.artifact?.variableValues?.todo ||
+  body.message?.artifact?.variables?.todo;
+
+  console.log("Extracted Todo:", todo);
+console.log(
+  "ToolCall Arguments:",
+  JSON.stringify(toolCall, null, 2)
+);
+console.log(
+  "Variable Values:",
+  body.message?.artifact?.variableValues
+);
 
     console.log("Extracted Todo:", todo);
 
